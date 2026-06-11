@@ -5,60 +5,65 @@
 PHASE 0 — DETECT SITUATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-First, answer these questions:
+Answer these questions:
 
 1. Is there a project in the current directory?
-   - Look for a dependency file:
-     package.json, requirements.txt, Cargo.toml,
-     go.mod, pom.xml, composer.json
+   Look for: package.json, requirements.txt,
+   Cargo.toml, go.mod, pom.xml, composer.json
    - Found → SITUATION A
    - Not found → SITUATION B
 
 2. Did the user specify a directory?
    - Yes → scan that directory → SITUATION A
-   - No → check current directory → apply check above
+   - No → check current directory → apply above
 
 SITUATION A — Project exists:
   → Continue from PHASE 1
 
 SITUATION B — No project yet:
-  → Build only the brain/ skeleton and AGENTS.md
+  → Build only brain/ skeleton and AGENTS.md
   → Create all files with default content
   → Write in activeContext.md:
-     Status: Waiting. No project added yet.
-     Brain is ready. Once the project is added,
-     run the command: 'update the brain'.
-  → Skip to PHASE 8 (final check)
+       Status: Waiting. No project added yet.
+       Brain is ready. Once the project is added,
+       run: 'update the brain'.
+  → Skip to PHASE 8
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 1 — PROJECT ANALYSIS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Scan the project from top to bottom.
-Skip these directories entirely:
-node_modules, dist, build, .git, .cache,
+Skip: node_modules, dist, build, .git, .cache,
 coverage, __pycache__, .next, .nuxt, vendor
 
-While scanning, identify the following:
+Identify and record:
 
-→ Technology stack
-→ Folder structure and the purpose of each folder
-→ Is this a single app or a monorepo?
-   - Monorepo: identify main packages and workspaces
+→ Technology stack (language, framework, runtime)
+→ Package manager and key dependencies with versions
+→ Folder structure — single-sentence purpose per folder
+→ Monorepo or single app?
+   - Monorepo: identify workspaces/packages
    - Single app: identify feature groups
-→ Single-sentence purpose of each file
-→ Exported functions and component names
-→ Repeating code patterns
-→ Configuration decisions (why this library was chosen)
+→ Entry points (main file, server bootstrap, root component)
+→ Single-sentence purpose of every non-trivial file
+→ Exported functions, classes, and component names per file
+→ Inter-file dependencies:
+   which files import which other files (top 15 most-imported)
+→ Repeating code patterns (named and noted)
+→ Configuration decisions (env vars, feature flags, constants)
 → Lines containing TODO, FIXME, HACK, workaround
-→ Complex or fragile code blocks
-→ Data models and their relationships
+→ Complex, fragile, or non-obvious code blocks (1-line note)
+→ Data models, schemas, and their relationships
+→ External API calls and third-party integrations
+→ Auth / permission boundaries (if any)
+→ Test coverage gaps (folders or features with no tests)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 2 — INTERMEDIATE NODE STRATEGY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Based on the analysis, choose a grouping strategy:
+Choose a grouping strategy based on analysis:
 
 Monorepo:
   Intermediate node = each package/workspace
@@ -66,12 +71,11 @@ Monorepo:
 
 Single app:
   Intermediate node = each feature group
-  Example: feature-auth, feature-dashboard,
-           feature-settings
+  Example: feature-auth, feature-dashboard
 
 Small project (fewer than 20 files):
   No intermediate nodes needed
-  Components can link directly to INDEX
+  Components link directly to INDEX
 
 Rule:
   If any single file receives more than
@@ -86,6 +90,7 @@ brain/
 ├── activeContext.md
 ├── architecture.md
 ├── data-models.md        ← only if data models exist
+├── integrations.md       ← only if external APIs exist
 ├── components/
 │   └── [group-name]/
 │       └── [component-name].md
@@ -102,25 +107,27 @@ brain/
 PHASE 4 — FILE FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Every file must start with this template:
+Every file must start with:
 
 ---
 date: YYYY-MM-DD
-type: component | decision | gotcha | pattern | architecture
-status: active
+type: component | decision | gotcha | pattern
+      | architecture | integration
+status: active | deprecated | needs-review
 ---
 
 Rules:
-- All dates must strictly follow YYYY-MM-DD format
-- Every file maximum 30-40 lines
-- If a file exceeds 40 lines, split it
+- Dates strictly in YYYY-MM-DD format
+- Every file: 30–40 lines maximum
+- If a file exceeds 40 lines → split it
 - File names: lowercase, hyphen-separated,
   no special characters
 - Link related files with [[wikilinks]]
-- Do not add personal commentary,
-  only reflect the project as-is
-- Every file must have at least 1 incoming [[wikilink]]
-  from another brain file — no orphan files allowed
+- No personal commentary — reflect project as-is
+- Every file must have at least 1 incoming
+  [[wikilink]] — no orphan files allowed
+- Mark status: needs-review on any file containing
+  a TODO, FIXME, HACK, or known fragile code
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 5 — FILE CONTENTS
@@ -128,64 +135,88 @@ PHASE 5 — FILE CONTENTS
 
 INDEX.md
 → Single-sentence purpose of the project
-→ Technology stack summary
+→ Technology stack summary (stack + versions)
+→ Entry points (main file / bootstrap)
 → [[wikilinks]] to all intermediate nodes
-→ [[wikilinks]] to the 3-5 most critical gotchas
+→ [[wikilinks]] to the 3–5 most critical gotchas
 → [[activeContext]] and [[architecture]] links
+→ Quick-reference: top 3 patterns, top 3 decisions
 
 architecture.md
-→ Folder structure and purpose of each folder
-→ Data flow
+→ Folder structure with one-line purpose per folder
+→ Data flow (request lifecycle or event flow)
+→ Auth/permission model (if any)
 → External dependencies and integrations
+→ Test coverage status (covered / partial / none)
 → [[wikilinks]] to intermediate nodes
+→ [[integrations]] link (if file exists)
 
 data-models.md (if applicable)
 → Each model: name, fields, relationships
-→ Only extract from existing schema/model files
+→ Cardinality (1:1, 1:N, N:M)
+→ Validation rules and constraints (1 line each)
+→ Extract only from existing schema/model files —
+  never invent or assume fields
 → [[wikilinks]] to related components and patterns
 
+integrations.md (if applicable)
+→ Each external API or service: name + purpose (1 line)
+→ Auth method used (API key, OAuth, etc.)
+→ Which components call it → [[wikilinks]]
+→ Known rate limits or error modes (if documented)
+
 components/[group]/[component].md
-→ Single purpose of the component (1-2 sentences)
+→ Single purpose of the component (1–2 sentences)
 → List of exported functions/props (names only)
+→ Key dependencies: which files this imports
+→ Key dependents: which files import this
+→ Side effects or global state touched (if any)
 → [[wikilinks]] to dependent components
 → [[wikilinks]] to related patterns or decisions
-→ [[wikilink]] to its own intermediate node
+→ [[wikilink]] to its intermediate node
 
 decisions/[intermediate-node].md
 → Single-sentence purpose of this group
+→ Dominant pattern(s) used in this group
 → [[wikilinks]] to components it contains
 → [[wikilinks]] to related decisions
+→ Any known gotchas scoped to this group
 
 decisions/[decision].md
 → What was decided (1 sentence)
 → Why this choice was made
 → Why alternatives were rejected
+→ Trade-offs accepted
 → [[wikilinks]] to affected intermediate nodes
 
 gotchas/[gotcha].md
 → What is the problem (1 sentence)
 → Why it occurs
 → How to prevent / fix it
+→ Affected scope (file, feature, or global)
 → [[wikilinks]] to related files
-→ After creating this file:
-   - Add [[gotcha-name]] to the related
+→ After creating:
+   - Add [[gotcha-name]] to the most relevant
      component or intermediate node file
    - If critical, add [[gotcha-name]] to
-     INDEX.md's gotcha list (max 5 entries)
+     INDEX.md gotcha list (max 5 entries)
 
 patterns/[pattern].md
 → When to use this pattern
-→ Code example (maximum 10-15 lines)
+→ When NOT to use it (anti-pattern note)
+→ Code example: maximum 10–15 lines
 → [[wikilinks]] to components using this pattern
-→ After creating this file:
-   - Add [[pattern-name]] to the related
-     component or intermediate node file
+→ After creating:
+   - Add [[pattern-name]] to every component
+     file that uses it
 
 activeContext.md
-→ Write this content:
-   Status: Idle. No active task assigned.
-   Last updated: YYYY-MM-DD
-   Past Logs: (leave empty, logs will be linked here)
+→ Status: Idle. No active task assigned.
+→ Current focus: (empty until first task)
+→ Last updated: YYYY-MM-DD
+→ Next steps: (empty until first task)
+→ Open questions: (empty — filled during sessions)
+→ Past Logs: (leave empty, logs linked here)
 
 logs/
 → Create the folder, leave it empty
@@ -194,27 +225,28 @@ logs/
 PHASE 6 — WIKILINK HIERARCHY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Strictly follow this hierarchy
-to prevent supernode formation:
+Strictly follow this hierarchy:
 
 INDEX
   └→ decisions/[intermediate-node]
        └→ components/[group]/[component]
 
-Forbidden connections:
+Forbidden:
 ✗ Components must not link directly to INDEX
-✗ Components must not link directly to
-  a top-level decision
-✗ No single file should receive
-  more than 10 incoming links
+✗ Components must not link to a top-level decision
+✗ No single file should receive more than 10 links
 
-Orphan prevention rule:
-✗ No file may exist without at least
-  1 incoming [[wikilink]] from another brain file
-✓ Every new file created → immediately update
-  its parent node to include a link to it
+Orphan prevention:
+✗ No file may exist without at least 1 incoming link
+✓ Every new file → immediately update its parent
+  to include a [[wikilink]] to it
 ✓ New gotcha or pattern → add link in the most
   relevant component or intermediate node file
+
+Cross-links allowed (use sparingly):
+✓ gotchas/ ↔ patterns/ (if directly related)
+✓ data-models/ ↔ components/ (for model consumers)
+✓ integrations/ ↔ components/ (for API callers)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 7 — AGENTS.md
@@ -223,7 +255,7 @@ PHASE 7 — AGENTS.md
 Write the following into AGENTS.md:
 
 # Session Start
-At the beginning of every session, read in order:
+Read at the start of every session (in order):
 1. brain/INDEX.md
 2. brain/activeContext.md
 
@@ -237,69 +269,76 @@ Read on demand based on the task:
   brain/gotchas/ (only open when needed)
 - Architecture question →
   brain/architecture.md
-- Database work →
+- Database / schema work →
   brain/data-models.md
+- External API work →
+  brain/integrations.md
 
 # Session End
 Before closing every session:
 1. Update changed components in brain/components/
-2. Add new decisions as files in brain/decisions/
+2. Add new decisions in brain/decisions/
 3. Add discovered gotchas in brain/gotchas/
-   → After creating a gotcha file:
-     a. Add [[gotcha-name]] link in the most
-        relevant component or intermediate node file
-     b. If critical, add [[gotcha-name]] to
-        INDEX.md's gotcha list (max 5 entries)
+   → Add [[gotcha-name]] to the most relevant
+     component or intermediate node
+   → If critical, add to INDEX.md (max 5)
 4. Add new patterns in brain/patterns/
-   → After creating a pattern file:
-     a. Add [[pattern-name]] link in every
-        component file that uses this pattern
-5. Create brain/logs/YYYY-MM-DD.md with:
-   - Files that were changed
-   - Decisions that were made
+   → Add [[pattern-name]] to every component
+     file that uses this pattern
+5. Update brain/integrations.md if any
+   external API was added or changed
+6. Create brain/logs/YYYY-MM-DD.md with:
+   - Files changed
+   - Decisions made
+   - Open questions unresolved
    - Unfinished work
-   → After creating the log file:
-     Add [[YYYY-MM-DD]] to brain/activeContext.md
-     under the "Past Logs" section
-6. Update brain/activeContext.md:
-   - Current feature being worked on
-   - Next step
+   → Add [[YYYY-MM-DD]] to activeContext.md
+     under "Past Logs"
+7. Update brain/activeContext.md:
+   - Current focus
+   - Next steps
+   - Open questions
    - Last updated: YYYY-MM-DD
 
 # General Rules
 - All dates must strictly follow YYYY-MM-DD
-- If you need details, open the source file —
+- Open source files for details —
   never copy source code into the brain
-- Every file maximum 30-40 lines —
-  split if it grows larger
-- If a file receives more than 10 incoming
-  links, create an intermediate node
+- Every file: 30–40 lines max — split if larger
+- If a file receives more than 10 incoming links →
+  create an intermediate node
 - Maintain [[wikilink]] hierarchy at all times
-- Do not add personal commentary,
-  only reflect the project as-is
+- No personal commentary — reflect project as-is
 - Every new file must immediately receive
-  at least 1 incoming [[wikilink]] from an
-  existing brain file — never leave a file
-  as an orphan (no incoming links)
+  at least 1 incoming [[wikilink]] — no orphans
+- Set status: needs-review on any file that
+  documents a known bug, TODO, or fragile code
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PHASE 8 — FINAL CHECK
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-When finished, report the following:
+When finished, report:
 
 Detected project type:
 - Monorepo / Single app / No project
 
 File counts:
-- Component files: how many
-- Decision files: how many
-- Gotcha files: how many
-- Pattern files: how many
-- Intermediate nodes: how many
+- Component files: N
+- Decision files: N
+- Gotcha files: N
+- Pattern files: N
+- Integration files: N
+- Intermediate nodes: N
+
+Coverage check:
+- Every entry point documented?
+- Every external API in integrations.md?
+- Every TODO/FIXME captured in a gotcha?
 
 Link check:
 - Any file with more than 10 incoming links?
 - Any broken [[wikilinks]]?
 - Any orphan (unlinked) files?
 - Any referenced but uncreated files?
+- Any file with status: needs-review?
